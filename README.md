@@ -1,6 +1,5 @@
 # klarabot
-Telegram Bot to use [KLaRa](https://github.com/KasperskyLab/klara) remotely
-
+Telegram Bot to use [KLaRa](https://github.com/KasperskyLab/klara) remotely. If you use another ip, change 127.0.0.1 in [klara.py](klara.py)
 
 # Setup
 
