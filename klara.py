@@ -7,7 +7,7 @@ import time
 import yara
 import re
 
-config = json.dumps(open("config.json").read())
+config = json.loads(open("config.json").read())
 
 TOKEN = config['TOKEN']
 Klara_API = config['KlaraAPIKEY']
