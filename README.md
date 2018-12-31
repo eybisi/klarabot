@@ -63,7 +63,7 @@ List all jobs. Finished or currently running
 `/list_jobs`
 
 ### /delete_job
-Delete job with given id. You can get job id with `/list_jobs` command. Or bot will give job id when new scan job is sent.
+Delete job with given id. You can get job id with `/list_jobs` command.
 
 `/delete_job 42`
 
@@ -85,7 +85,7 @@ Stop autoscan.
 `/stop_autoscan`
 
 ### /is_autoscan_running
-Returns if autoscan on. If it on bot will send next call in seconds
+Returns if autoscan on. If it is on bot will send next call in seconds
 
 `/is_autoscan_running`
 
