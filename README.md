@@ -1,5 +1,6 @@
 # klarabot
-Telegram Bot to use [KLaRa](https://github.com/KasperskyLab/klara) remotely. If you use another ip, change 127.0.0.1 in [klara.py](klara.py)
+Telegram Bot to use [KLaRa](https://github.com/KasperskyLab/klara) remotely
+
 
 # Setup
 
@@ -9,15 +10,15 @@ To add new key to database simply run this query while you are in mysql.
 
 `update users set api_auth_code='testAPICode', api_perms='["all"]' , api_status='1' where username='admin'`
 
-Put your APIKEY inside of [config.py](config.py) and replace with "KLARA_API_KEY" 
+Put your APIKEY inside of [config.json](config.json) and replace with "KLARA_API_KEY" 
 
-Next create telegram bot. Simply go to [t.me/botfather](t.me/botfather) and type /newbot . Give name and username to your bot. Then take HTTP API token and put in [config.py](config.py) and replace with "TELEGRAM_BOT_TOKEN" 
+Next create telegram bot. Simply go to [t.me/botfather](t.me/botfather) and type /newbot . Give name and username to your bot. Then take HTTP API token and put in [config.json](config.json) and replace with "TELEGRAM_BOT_TOKEN" 
 
 
 # Whitelist
 
 Since you dont want to let other people to use your internal system, I created some auth with chat_id. See this [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L274) in my code. When you first run bot type /chat_id . Put that number 
-to 'whitelist' list variable in [config.py](config.py) . Uncomment [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L274) and [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L258) you are good to go. If you want another person to use bot, simply follow this procedure again. 
+to 'whitelist' list variable in [config.json](config.json) . Uncomment [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L274) and [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L258) you are good to go. If you want another person to use bot, simply follow this procedure again. 
 
 
 # Commands
