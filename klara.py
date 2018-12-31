@@ -1,6 +1,5 @@
 import telegram
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, Filters, MessageHandler, DispatcherHandlerStop
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, DispatcherHandlerStop
 import requests
 import json
 import config
@@ -31,6 +30,7 @@ def save_yara():
     f.close()
 
 def load_yara():
+    global rules
     try:
         f = open('yara_rules.txt', 'r')
     except Exception as err:
@@ -109,7 +109,7 @@ def scan_internal(chat_id):
     try:
         yara.compile(source=all_rules)
     except Exception as e:
-        bot.send_message(chat_id,'Err : {}'.format(err))
+        bot.send_message(chat_id,'Err : {}'.format(e))
         return
     ##Can take repo id as input
     data = {"auth_code":Klara_API, "rules": "\n".join(rules), "repositories":'["1"]'}
@@ -190,18 +190,19 @@ def _help(bot, update):
         "/scan\n"\
         "/start_autoscan | /start_autoscan 3600 . 2nd argument is in seconds\n"\
         "/stop_autoscan\n"\
-        "/is_autoscan_running"
-    "/list_repos\n"\
+        "/is_autoscan_running"\
+        "/list_repos\n"\
         "/list_jobs\n"\
         "/delete_job 42\n"\
-        "/status_job 42\n"\
-        try:
+        "/status_job 42\n"
+
+    try:
         bot.send_message(update.message.chat_id, m)
     except Exception as e:
         print(e)
 
 def start_autoscan(bot, update):
-    msg = update.message.text,split(' ')
+    msg = update.message.text.split(' ')
     if len(msg) == 2:
         if msg[1].isdigit():
             rt.change_interval(int(msg[1]))
