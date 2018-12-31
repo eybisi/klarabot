@@ -10,9 +10,9 @@ To add new key to database simply run this query while you are in mysql.
 
 `update users set api_auth_code='testAPICode', api_perms='["all"]' , api_status='1' where username='admin'`
 
-Put your APIKEY inside of [config.py](config.py) and replace with "KLARA_API_KEY" 
+Put your APIKEY inside of [config.json](config.json) and replace with "KLARA_API_KEY" 
 
-Next create telegram bot. Simply go to [t.me/botfather](t.me/botfather) and type /newbot . Give name and username to your bot. Then take HTTP API token and put in [config.py](config.py) and replace with "TELEGRAM_BOT_TOKEN" 
+Next create telegram bot. Simply go to [t.me/botfather](t.me/botfather) and type /newbot . Give name and username to your bot. Then take HTTP API token and put in [config.json](config.json) and replace with "TELEGRAM_BOT_TOKEN" 
 
 
 # Whitelist
