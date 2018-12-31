@@ -1,0 +1,3 @@
+TOKEN='TELEGRAM_BOT_TOKEN'
+KlaraAPIKEY="KLARA_API_KEY"
+whitelist=[]

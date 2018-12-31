@@ -2,6 +2,7 @@ import telegram
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, DispatcherHandlerStop
 import requests
 import json
+import config
 import threading
 import time
 import yara
@@ -11,8 +12,10 @@ config = json.loads(open("config.json").read())
 
 TOKEN = config['TOKEN']
 Klara_API = config['KlaraAPIKEY']
+
+whitelist = config.['whitelist']
 Klara_API_URL = "http://127.0.0.1/index.php/api/jobs/"
-whitelist = config['whitelist']
+
 
 
 updater = Updater(token=TOKEN)
