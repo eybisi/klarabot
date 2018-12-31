@@ -18,7 +18,7 @@ Next create telegram bot. Simply go to [t.me/botfather](t.me/botfather) and type
 # Whitelist
 
 Since you dont want to let other people to use your internal system, I created some auth with chat_id. See this [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L274) in my code. When you first run bot type /chat_id . Put that number 
-to 'whitelist' list variable in [config.py](config.py) . Uncomment [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L274) and [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L258) you are good to go. If you want another person to use bot, simply follow this procedure again. 
+to 'whitelist' list variable in [config.json](config.json) . Uncomment [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L274) and [line](https://github.com/eybisi/klarabot/blob/master/klara.py#L258) you are good to go. If you want another person to use bot, simply follow this procedure again. 
 
 
 # Commands
