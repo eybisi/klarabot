@@ -1,5 +1,5 @@
 # klarabot
-Telegram Bot to use [KLaRa](https://github.com/KasperskyLab/klara) remotely
+Telegram Bot to use [KLaRa](https://github.com/KasperskyLab/klara) remotely . Can be combined with [vtfeeder](https://github.com/eybisi/vtfeeder) . Vtfeeder downloads file feed from virustotal each hour and klara scans files automatically.
 
 
 # Setup
