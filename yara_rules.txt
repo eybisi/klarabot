@@ -1,5 +1,1 @@
-rule dummy
-{
-    condition:
-       false
-}
+["rule dummy \n{\ncondition:\ntrue\n}"]
