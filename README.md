@@ -38,7 +38,7 @@ Add new yara rule to ruleset. While sending new job to KLaRa, bot will use these
 ```
 
 ### /list_yara :
-List yara rules. `/list_yara` will list rules with just rule names. `/list_yara 1` will list rule[0] with full info. `/list_yara detail` will list all rules with full info.
+List yara rules. `/list_yara` will list rules with just rule names. `/list_yara 1` will list rule[0] with full info.
 
 ### /remove_yara :
 Remove yara rule from yara list. You can give multiple indexes. 
