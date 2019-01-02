@@ -6,6 +6,7 @@ import threading
 import time
 import yara
 import re
+from bs4 import BeautifulSoup
 
 config = json.loads(open("config.json").read())
 
@@ -39,39 +40,118 @@ def load_yara():
         raise err
     rules = json.load(f)
 
-def add_yara(bot, update):
-    yr = update.message.text.split(" ", 1)[1]
-    try:
-        yara.compile(source=yr)
-    except Exception as e:
-        bot.send_message(update.message.chat_id,'Err : {}'.format(e))
-        return
+def safe_send_message(bot,update,m):
 
-    bot.send_message(update.message.chat_id,'Rule is succesfully added to list !')
-    rules.append(yr)
-    save_yara()
+    msgs = [m[i:i + 4096] for i in range(0, len(m), 4096)]
+    for text in msgs:
+        try:
+            bot.send_message(update.message.chat_id,text)
+        except Exception as e:
+            print(e)
+
+def add_yara(bot, update):
+
+    msg = update.message.text.split(" ",1)
+    if len(msg) != 2:
+        bot.send_message(update.message.chat_id,'1 parameter pls')
+
+    if msg[1].startswith('rule'):
+        try:
+            yara.compile(source=msg[1])
+        except Exception as e:
+            bot.send_message(update.message.chat_id,'Err : {}'.format(e))
+            return
+
+        bot.send_message(update.message.chat_id,'Rule is succesfully added to list !')
+        rules.append(msg[1])
+        save_yara()
+
+    elif msg[1].startswith('https://github.com'):
+        ## parse each rule. example : https://github.com/Neo23x0/signature-base/tree/master/yara
+        print('parse')
+        r = requests.get(msg[1])
+        if r.ok:
+            soup = BeautifulSoup(r.text,'html.parser')
+
+            link_list = []
+            for div in soup.findAll('table',{'class':'files'}):
+                for row in div.findAll('tr'):
+                    for cont in row.findAll('td',{'class':'content'}):
+                        for span in cont.findAll('span'):
+                            for a in span.findAll('a'):
+                                href = a.get('href')
+                                href = href.replace('/blob','')
+                                link_list.append('https://raw.githubusercontent.com'+href)
+
+            for link in link_list:
+                r = requests.get(link)
+                if r.ok:
+                    print(link + ' added')
+                    try:
+                        yara.compile(source=r.text)
+                    except Exception as e:
+                        bot.send_message(update.message.chat_id,'Err : {}\nNot adding rule {}'.format(e,link))
+                        continue
+
+                    rules.append(r.text)
+
+                else:
+                    print('bad link')
+
+            save_yara()
+        else:
+            print('bad request')
+
+    elif msg[1].startswith('https://raw.githubusercontent.com'):
+        ## add only one rule
+        r = requests.get(msg[1])
+        if r.ok:
+            print(r.text)
+            try:
+                yara.compile(source=r.text)
+            except Exception as e:
+                bot.send_message(update.message.chat_id,'Err : {}'.format(e))
+                return
+
+            rules.append(r.text)
+
+        else:
+            print('bad request')
+
+    else:
+        bot.send_message(update.message.chat_id,'Bad parameter')
 
 
 def list_yara(bot, update):
     msg = update.message.text.split(' ')
     if len(msg) == 1:
-        matches = re.findall('rule (\w+)','\n'.join(rules))
-        m = ''
-        for c,r in enumerate(matches):
-            m += '{} {}\n'.format(c+1,r)
+        rulecount = 1
+        m =''
+        for rule in rules:
+            try:
+                first_rule = re.search('rule (\w+).*\n?{',rule)
+            except Exception as e:
+                bot.send_message(update.message.chat_id,e)
+                continue
+            if first_rule:
+                m += '{} {}\n'.format(rulecount,first_rule[0])
+            else:
+                m += '{} {}\n'.format(rulecount,'Empty rule')
+
+            rulecount +=1
 
         if m != '':
-            bot.send_message(update.message.chat_id, m)
+            bot.send_message(update.message.chat_id,len(rules))
+            safe_send_message(bot,update,m)
+
         else:
             bot.send_message(update.message.chat_id,'Empty')
-    elif msg[1] == 'detail':
-        r = "\n".join(rules)
-        bot.send_message(update.message.chat_id, r)
+
 
     elif msg[1].isdigit():
         ind = int(msg[1])
         if ind-1 < len(rules):
-            bot.send_message(update.message.chat_id,rules[ind-1])
+            safe_send_message(bot,update,rules[ind-1])
 
         else:
             bot.send_message(update.message.chat_id,'Index is greater than length of rules list')
