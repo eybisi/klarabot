@@ -134,8 +134,8 @@ def list_yara(bot, update):
                 bot.send_message(update.message.chat_id,e)
                 continue
             if first_rule:
-                m += '{} {}\n'.format(rulecount,first_rule[0])
-            else:
+		m += '{} {}\n'.format(rulecount,first_rule.group(0))
+	    else:
                 m += '{} {}\n'.format(rulecount,'Empty rule')
 
             rulecount +=1
@@ -180,6 +180,7 @@ def remove_yara(bot, update):
         try:
             ind = i-1
             del rules[ind]
+	    save_yara()
         except:
             break
     else:
@@ -195,12 +196,15 @@ def scan_internal(chat_id):
         return
     ##Can take repo id as input
     data = {"auth_code":Klara_API, "rules": "\n".join(rules), "repositories":'["1"]'}
+    print(len(data['rules']))
     r = requests.post(Klara_API_URL+"add", data=data)
     if r.ok:
         j = json.loads(r.text)
+        print(r.text)
         print(j['return_data'])
         bot.send_message(chat_id, "[+] Success: Job Id: " +str(j['return_data'][0]))
-
+    else:
+	bot.send_message(chat_id,r.text)
 
 def scan(bot, update):
 
@@ -212,12 +216,15 @@ def scan(bot, update):
 
 def list_repos(bot, update):
     data = {"auth_code":Klara_API}
+    print(data)
     r = requests.post(Klara_API_URL+"get_allowed_repos", data=data)
+    print(r.text)
     j = json.loads(r.text)
     mes = "Repositories: \n"
     for i in j['return_data']:
         mes += i['entry'] + " "+ i['id'] +"\n"
-        bot.send_message(update.message.chat_id, mes)
+    
+    bot.send_message(update.message.chat_id, mes)
 
 
 def list_jobs(bot, update):
@@ -227,40 +234,79 @@ def list_jobs(bot, update):
     mes = "List of Jobs:\n"
     for i in j['return_data']:
         mes += "ID: "+ i['id'] + " Status: " + i['status']+ " Rule: "+i['rules_first_line'] +"\n"
-        bot.send_message(update.message.chat_id, mes)
+    
+    bot.send_message(update.message.chat_id, mes)
 
 def delete_job(bot, update):
-    jobid = update.message.text.split(" ", 1)[1]
-    if not jobid.isdigit():
-        bot.send_message(update.message.chat_id,  " Bad integer")
-        data = {"auth_code":Klara_API}
-        r = requests.post(Klara_API_URL+"delete/"+jobid, data=data)
-        if r.ok:
-            bot.send_message(update.message.chat_id, "[+] "+jobid+" deleted")
+	jobid = update.message.text.split(" ", 1)[1]
+	if not jobid.isdigit():
+		bot.send_message(update.message.chat_id,  " Bad integer")
+
+	data = {"auth_code":Klara_API}
+	r = requests.post(Klara_API_URL+"delete/"+jobid, data=data)
+	if r.ok:
+	    bot.send_message(update.message.chat_id, "[+] "+jobid+" deleted")
+	else :
+	    bot.send_message(update.message.chat_id,r.text)
+
 
 def status_job(bot, update):
-    jobid = update.message.text.split(" ", 1)[1]
-    if not jobid.isdigit():
-        bot.send_message(update.message.chat_id,  " Bad integer")
-        data = {"auth_code":Klara_API, "detailed_info":"true"}
-        r = requests.post(Klara_API_URL+"status/"+jobid, data=data)
-        j = json.loads(r.text)
-        if r.ok:
-            rd = j['return_data']
-            if rd['status'] == 'new':
-                bot.send_message(update.message.chat_id, "Status "+rd['status'])
-            else:
-                mes = "Status : " + rd['status']
-                mes += "\n###############\n"
-                mes += "Rule: \n" + rd['rules']
-                mes += "\n###############\n"
-                mes += "Matched Files: \n"+ rd['matched_files']
-                mes += "\n###############\n"
-                mes += "Results: \n" + rd['results']
-                mes += "\n###############\n"
-                hashes = "\n".join(rd['hashes'])
-                mes += "Hashes: \n" + hashes
-                bot.send_message(update.message.chat_id, mes)
+    	jobid = update.message.text.split(" ", 1)[1]
+	if not jobid.isdigit():
+		bot.send_message(update.message.chat_id,  " Bad integer")
+	data = {"auth_code":Klara_API, "detailed_info":"true"}
+	r = requests.post(Klara_API_URL+"status/"+jobid, data=data)
+	j = json.loads(r.text)
+	if r.ok:
+	    rd = j['return_data']
+	    if rd['status'] != 'finished':
+		mes = "Status : " + rd['status']
+		mes += "\n###############\n"
+		mes += "Mail : " + rd['description']['notify_email']
+		mes += "\n###############\n"
+		mes += "Start time : " + rd['start_time']
+		mes += "\n###############\n"
+		mes += "Owner : " + rd['owner']
+		bot.send_message(update.message.chat_id, mes)
+	    else:
+
+		try: 	
+			mes = "Status : " + rd['status']
+			mes += "\n###############\n"
+				
+			mes += "Matched Files: \n"+ rd['matched_files']
+			mes += "\n###############\n"
+			
+			mes += "Execution time : " + str(rd['description']['execution_time'])	
+			mes += "\nStart time : " + rd['start_time']
+			mes += "\nFinish time : " + rd['finish_time']
+			mes += "\n###############\n"
+			mes += "\nNotify email : " + rd['description']['notify_email']
+		except Exception as e:
+			print(e)
+				
+		if rd['description']['yara_warnings'] != "false":
+			mes += "\nYara warning : " + rd['description']['yara_warnings']
+		
+		if rd['description']['yara_errors'] != "false":
+			mes += "\nYara error : " + rd['description']['yara_errors']
+		
+		safe_send_message(bot,update,mes)
+		yara_rules = rd['rules']
+		f = open("/tmp/rules.txt","w")
+		f.write(yara_rules)
+		f.close()
+		f = open("/tmp/rules.txt","r")
+		bot.send_document(update.message.chat_id, document=f)
+		f.close()
+
+		results = rd['results']
+		f = open("/tmp/results.txt","w")
+		f.write(results)
+		f.close()
+		f = open("/tmp/results.txt","r")
+		bot.send_document(update.message.chat_id,document=f)
+		f.close()
 
 def chat_id(bot, update):
     bot.send_message(update.message.chat_id, update.message.chat_id)
@@ -272,7 +318,7 @@ def _help(bot, update):
         "/scan\n"\
         "/start_autoscan | /start_autoscan 3600 . 2nd argument is in seconds\n"\
         "/stop_autoscan\n"\
-        "/is_autoscan_running"\
+        "/is_autoscan_running\n"\
         "/list_repos\n"\
         "/list_jobs\n"\
         "/delete_job 42\n"\
@@ -311,11 +357,16 @@ class repeatafterme(object):
         self.kwargs = kwargs
         self.is_running = False
         self.next_call = time.time()
-
+	self.first_run()
+	
     def _run(self):
         self.is_running = False
         self.start()
         self.function(*self.args,  **self.kwargs)
+
+    def first_run(self):
+        fr = threading.Thread(target=self.function,args=self.args)
+        fr.start()
 
     def start(self):
         if not self.is_running:
@@ -333,11 +384,11 @@ class repeatafterme(object):
 
 def check_allowed(bot, update):
     if update.message.chat_id not in whitelist:
-        bot.send_message(whitelist[0],'Unknown user')
+        bot.send_message(whitelist[0],'Unknown user: {}'.format(update.message.from_user))
+  	raise DispatcherHandlerStop
 
 if __name__ == "__main__":
 
-    #rt = repeatafterme(60*60*12, scan_internal, whitelist[0])
     add_handler = CommandHandler('add_yara', add_yara)
     list_handler = CommandHandler('list_yara', list_yara)
     remove_handler = CommandHandler('remove_yara', remove_yara)
@@ -346,14 +397,15 @@ if __name__ == "__main__":
     list_jobs_handler = CommandHandler('list_jobs', list_jobs)
     del_handler = CommandHandler('delete_job', delete_job)
     status_handler = CommandHandler('status_job', status_job)
-    chat_handler = CommandHandler('chat_id', chat_id)
+    chat_handler = CommandHandler('chat_id1', chat_id)
     start_auto_handler = CommandHandler('start_autoscan', start_autoscan)
     stop_auto_handler = CommandHandler('stop_autoscan', stop_autoscan)
     is_auto_handler = CommandHandler('is_autoscan_running', is_autoscan_running)
 
     load_yara()
-    help_handler = CommandHandler('help', _help)
-    #dispatcher.add_handler(MessageHandler(Filters.all, check_allowed), -1)
+    help_handler = CommandHandler('help1', _help)
+    rt = repeatafterme(60*60*12, scan_internal, whitelist[1])
+    dispatcher.add_handler(MessageHandler(Filters.all, check_allowed), -1)
     dispatcher.add_handler(add_handler)
     dispatcher.add_handler(list_handler)
     dispatcher.add_handler(remove_handler)
